@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+</head>
+<body>
+  <h1>Astroping's Animation Thing</h1>
+  <p>Please note that this is a work in progress, and some features may not be fully functional yet. If you encounter any issues or have suggestions for improvement, please feel free to reach out to me. Your feedback is greatly appreciated as I continue to enhance this animation tool.</p>
+
+  <div id="contextMenu" class="context-menu" hidden>
+    <button id="ctxDupBtn">Duplicate Frame</button>
+    <button id="ctxDelBtn">Delete Frame</button>
+  </div>
+
+  <!-- Top Drawing Tools -->
+  <div class="toolbar">
+    <button id="penBtn" class="active">
+      <i class="fa-solid fa-pen"></i>
+    </button>
+    <button id="eraserBtn">
+      <i class="fa-solid fa-eraser"></i>
+    </button>
+    <input type="color" id="colorPicker" value="#111111" title="Brush Color" />
+    <label>Size<input type="range" id="brushSize" min="1" max="30" value="4" /></label>
+    <button id="onionBtn" class="active">
+      Onion Skin: ON
+    </button>
+    <button id="clearBtn">
+      <i class="fa-solid fa-trash"></i>
+    </button>
+    <button id="undoBtn">Undo</button>
+    <button id="redoBtn">Redo</button>
+  </div>
+
+  <!-- Drawing Stage -->
+  <div class="stage">
+    <canvas id="onionCanvas" width="720" height="420"></canvas>
+    <canvas id="drawCanvas" width="720" height="420"></canvas>
+      <div id="brushCursor" hidden></div>
+  </div>
+
+  <!-- Frame Actions & Playback -->
+  <div class="controls">
+    <button id="prevBtn">&lt; Prev</button>
+    <span id="frameIndicator">Frame 1 / 1</span>
+    <button id="nextBtn">Next &gt;</button>
+    <button id="exportBtn">Export WebM</button>
+    <button id="dupFrameBtn">Duplicate</button>
+    <button id="delFrameBtn">Delete</button>
+    <label>FPS <input type="number" id="fpsInput" min="1" max="60" value="12" /></label>
+    <button id="playBtn">Play</button>
+  </div>
+
+  <!-- Visible Horizontal Frame Timeline -->
+  <div class="timeline-wrapper">
+    <div id="timelineStrip" class="timeline-strip"></div>
+  </div>
+
+<script src="main.js"></script>
+</body>
+</html>
