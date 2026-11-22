@@ -2,24 +2,71 @@
 
 * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
 
+:root {
+  /* Dark */
+  --background-color-dark: #18181b;
+  --text-color-dark: #f4f4f5;
+  --button-color-dark: #3f3f46;
+  --toolbar-color-dark: #27272a;
+
+  /* Light */
+  --background-color-light: #f4f4f5;
+  --text-color-light: #000000;
+  --button-color-light: #c0c0c0;
+  --toolbar-color-light: #e5e5e5;
+
+  /* UV */
+  --bg-color: var(--background-color-dark);
+  --text-color: var(--text-color-dark);
+}
+
+body.dark-mode {
+  --bg-color: var(--background-color-dark);
+  --text-color: var(--text-color-dark);
+  --button-color: var(--button-color-dark);
+  --toolbar-color: var(--toolbar-color-dark);
+}
+
+body {
+  --bg-color: var(--background-color-light);
+  --text-color: var(--text-color-light);
+  --button-color: var(--button-color-light);
+  --toolbar-color: var(--toolbar-color-light);
+}
+
 body {
   font-family: "Poppins", sans-serif;
-  margin: 0; background: #18181b; color: #f4f4f5;
+  margin: 0; background: var(--bg-color);
+  color: var(--text-color);
   display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px;
+  transition: background-color 0.2s, color 0.2s;
 }
+
+button {
+  background-color: var(--button-color);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
 .toolbar, .controls {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-  background: #27272a; padding: 10px 14px; border-radius: 10px;
+  background: var(--toolbar-color); padding: 10px 14px; border-radius: 10px;
   max-width: 95vw;
 }
-button, input, label {
-  background: #3f3f46; color: #fff; border: none; padding: 6px 12px;
-  border-radius: 6px; cursor: pointer; font-size: 14px;
+
+button:hover { background: var(--button-color-dark); }
+button.active {
+  background: #2563eb;
 }
-button:hover { background: #52525b; }
-button.active { background: #2563eb; }
-input[type="color"] { padding: 2px; width: 36px; height: 32px; }
-input[type="number"] { width: 60px; }
+input[type="color"] {
+  padding: 2px; width: 36px; height: 32px;
+}
+input[type="number"] {
+  width: 60px; 
+}
 
 /* Drawing Stage */
 .stage {
@@ -36,8 +83,9 @@ input[type="number"] { width: 60px; }
 
 /* Visible Horizontal Timeline Strip */
 .timeline-wrapper {
-  width: 720px; max-width: 95vw; background: #27272a;
+  width: 720px; max-width: 95vw; background: var(--toolbar-color);
   padding: 10px; border-radius: 10px;
+  transition: background-color 0.2s, color 0.2s;
 }
 .timeline-strip {
   display: flex; align-items: center; gap: 10px;
@@ -50,7 +98,7 @@ input[type="number"] { width: 60px; }
 .frame-card {
   position: relative; flex: 0 0 auto; width: 104px; height: 62px;
   background: #ffffff; border-radius: 6px; overflow: hidden;
-  border: 3px solid #3f3f46; cursor: pointer;
+  border: 3px solid var(--button-color-dark); cursor: pointer;
   transition: transform 0.1s, border-color 0.1s;
 }
 .frame-card:hover {
@@ -71,7 +119,7 @@ input[type="number"] { width: 60px; }
 }
 .add-card {
   flex: 0 0 auto; width: 62px; height: 62px;
-  background: #3f3f46; color: #f4f4f5; border-radius: 6px;
+  background: var(--button-color-dark); color: #f4f4f5; border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   font-size: 26px; font-weight: bold; cursor: pointer;
 }
@@ -88,7 +136,7 @@ input[type="number"] { width: 60px; }
 }
 .context-menu[hidden] { display: none; }
 .context-menu button { text-align: left; background: transparent; width: 140px; }
-.context-menu button:hover { background: #3f3f46; }
+.context-menu button:hover { background: var(--button-color-dark); }
 
 #drawCanvas {
   cursor: none;
