@@ -1,4 +1,4 @@
-const drawCanvas = document.getElementById("drawCanvas");
+cconst drawCanvas = document.getElementById("drawCanvas");
 const drawCtx = drawCanvas.getContext("2d", { willReadFrequently: true });
 const onionCanvas = document.getElementById("onionCanvas");
 const onionCtx = onionCanvas.getContext("2d");
@@ -9,6 +9,25 @@ const helperCanvas = document.createElement("canvas");
 helperCanvas.width = drawCanvas.width;
 helperCanvas.height = drawCanvas.height;
 const helperCtx = helperCanvas.getContext("2d");
+const themeToggle = document.getElementById('themeBtn');
+
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    const icon = themeToggle.querySelector('i');
+    icon.classList.toggle('fa-moon');
+    icon.classList.toggle('fa-sun');
+
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark-mode');
+    } else {
+        localStorage.removeItem('theme');
+    }
+});
+
+if (localStorage.getItem('theme') === 'dark-mode') {
+    document.body.classList.add('dark-mode');
+    themeToggle.querySelector('i').classList.replace('fa-moon', 'fa-sun');
+};
 
 // App State
 let frames = [drawCtx.createImageData(drawCanvas.width, drawCanvas.height)];
