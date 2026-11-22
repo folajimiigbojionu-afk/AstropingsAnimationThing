@@ -1,5 +1,5 @@
 const drawCanvas = document.getElementById("drawCanvas");
-const drawCtx = drawCanvas.getContext("2d", { willReadFrequently: true });
+const ctx = drawCanvas.getContext("2d", { willReadFrequently: true });
 const onionCanvas = document.getElementById("onionCanvas");
 const onionCtx = onionCanvas.getContext("2d");
 const timelineStrip = document.getElementById("timelineStrip");
@@ -19,7 +19,7 @@ themeToggle.addEventListener('click', () => {
 
     if (document.body.classList.contains('dark-mode')) {
         localStorage.setItem('theme', 'dark-mode');
-    } else {
+    } else { 
         localStorage.removeItem('theme');
     }
 });
@@ -30,7 +30,7 @@ if (localStorage.getItem('theme') === 'dark-mode') {
 };
 
 // App State
-let frames = [drawCtx.createImageData(drawCanvas.width, drawCanvas.height)];
+let frames = [ctx.createImageData(drawCanvas.width, drawCanvas.height)];
 let currentFrame = 0;
 let isDrawing = false;
 let tool = "pen";
@@ -38,12 +38,14 @@ let onionEnabled = true;
 let playTimer = null;
 let points = [];
 
-drawCtx.lineCap = "round";
-drawCtx.lineJoin = "round";
+ctx.lineCap = "round";
+ctx.lineJoin = "round";
 
 // --- 1. Drawing Logic (Mouse, Touch & Stylus) ---
 drawCanvas.addEventListener("pointerdown", (e) => {
   if (playTimer) return;
+  if (tool === "select") return;
+
   isDrawing = true;
   drawCanvas.setPointerCapture(e.pointerId);
 
@@ -51,15 +53,15 @@ drawCanvas.addEventListener("pointerdown", (e) => {
   points = [pt, pt]; // Duplicate start point so dots/short taps still render
 
   // Configure brush once per stroke
-  drawCtx.lineCap = "round";
-  drawCtx.lineJoin = "round";
-  drawCtx.lineWidth = document.getElementById("brushSize").value;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = document.getElementById("brushSize").value;
 
   if (tool === "eraser") {
-    drawCtx.globalCompositeOperation = "destination-out";
+    ctx.globalCompositeOperation = "destination-out";
   } else {
-    drawCtx.globalCompositeOperation = "source-over";
-    drawCtx.strokeStyle = document.getElementById("colorPicker").value;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = document.getElementById("colorPicker").value;
   }
 
   renderSmoothStroke();
@@ -67,6 +69,7 @@ drawCanvas.addEventListener("pointerdown", (e) => {
 
 drawCanvas.addEventListener("pointermove", (e) => {
   if (!isDrawing) return;
+  if (tool === "select") return;
 
   // Use coalesced events if available for higher-precision stylus/mouse tracking
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
@@ -95,27 +98,27 @@ drawCanvas.addEventListener("pointerup", () => {
 
 function renderSmoothStroke() {
   // Restore clean frame state so the stroke doesn't layer over itself
-  drawCtx.save();
-  drawCtx.globalCompositeOperation = "source-over";
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  drawCtx.putImageData(frames[currentFrame], 0, 0);
-  drawCtx.restore();
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  ctx.putImageData(frames[currentFrame], 0, 0);
+  ctx.restore();
 
   if (points.length < 2) return;
 
-  drawCtx.beginPath();
-  drawCtx.moveTo(points[0].x, points[0].y);
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
 
   for (let i = 1; i < points.length - 1; i++) {
     const midX = (points[i].x + points[i + 1].x) / 2;
     const midY = (points[i].y + points[i + 1].y) / 2;
-    drawCtx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+    ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
   }
 
   // Connect to the final point
   const last = points[points.length - 1];
-  drawCtx.lineTo(last.x, last.y);
-  drawCtx.stroke();
+  ctx.lineTo(last.x, last.y);
+  ctx.stroke();
 }
 
 function getCoords(e) {
@@ -128,7 +131,7 @@ function getCoords(e) {
 
 // --- 2. Frame Storage, Onion Skin & Visible Timeline ---
 function saveCurrentFrame() {
-  frames[currentFrame] = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  frames[currentFrame] = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
 }
 
 function renderTimeline() {
@@ -193,8 +196,8 @@ function scrollToActiveFrame() {
 
 function loadFrame(index, rebuildStrip = false) {
   currentFrame = index;
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  drawCtx.putImageData(frames[currentFrame], 0, 0);
+  ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  ctx.putImageData(frames[currentFrame], 0, 0);
 
   onionCtx.clearRect(0, 0, onionCanvas.width, onionCanvas.height);
   if (onionEnabled && currentFrame > 0 && !playTimer) {
@@ -218,7 +221,7 @@ function loadFrame(index, rebuildStrip = false) {
 function addBlankFrame() {
   if (playTimer) return;
   saveCurrentFrame();
-  const blank = drawCtx.createImageData(drawCanvas.width, drawCanvas.height);
+  const blank = ctx.createImageData(drawCanvas.width, drawCanvas.height);
   frames.splice(currentFrame + 1, 0, blank);
   loadFrame(currentFrame + 1, true);
 }
@@ -230,6 +233,7 @@ function setTool(selected) {
   tool = selected;
   document.getElementById("penBtn").classList.toggle("active", tool === "pen");
   document.getElementById("eraserBtn").classList.toggle("active", tool === "eraser");
+  document.getElementById("selectBtn").classList.toggle("active", tool === "select");
 }
 
 document.getElementById("onionBtn").onclick = (e) => {
@@ -240,7 +244,7 @@ document.getElementById("onionBtn").onclick = (e) => {
 };
 
 document.getElementById("clearBtn").onclick = () => {
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+  ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   saveCurrentFrame();
   updateSingleThumbnail(currentFrame);
 };
@@ -420,3 +424,145 @@ document.getElementById("exportBtn").onclick = async (e) => {
 
   recorder.stop();
 };
+
+const selectionBox = document.getElementById('selectionBox');
+const selectBtn = document.getElementById('selectBtn');
+
+// Offscreen canvas to hold cut pixels with transparency intact
+const floatCanvas = document.createElement('canvas');
+const floatCtx = floatCanvas.getContext('2d');
+
+// Remove currentTool; use 'tool' as the single source of truth
+let selState = 'idle';   // 'idle' | 'selecting' | 'selected' | 'moving'
+let selRect = { x: 0, y: 0, w: 0, h: 0 };
+let dragStart = { x: 0, y: 0 };
+let baseImageData = null; // Stores canvas state behind the floating selection
+
+// Activate Select Tool
+selectBtn.addEventListener('click', () => {
+  commitSelection();
+  setTool('select');
+  document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+  selectBtn.classList.add('active');
+  document.getElementById('brushCursor').hidden = true;
+});
+
+// Helper: stamp floating pixels permanently back onto drawCanvas
+function commitSelection() {
+  if (selState === 'selected' || selState === 'moving') {
+    ctx.putImageData(baseImageData, 0, 0);
+    ctx.drawImage(floatCanvas, selRect.x, selRect.y);
+  }
+  selState = 'idle';
+  selectionBox.hidden = true;
+  selectionBox.classList.remove('ready-to-move');
+  baseImageData = null;
+}
+
+// Call commitSelection() whenever switching to pen/eraser or changing frames!
+document.getElementById('penBtn').addEventListener('click', () => { commitSelection(); setTool('pen'); });
+document.getElementById('eraserBtn').addEventListener('click', () => { commitSelection(); setTool('eraser'); });
+
+function getCanvasCoords(e) {
+  const rect = drawCanvas.getBoundingClientRect();
+  return {
+    x: Math.round(e.clientX - rect.left),
+    y: Math.round(e.clientY - rect.top)
+  };
+}
+
+function updateBoxUI() {
+  selectionBox.style.left = `${selRect.x}px`;
+  selectionBox.style.top = `${selRect.y}px`;
+  selectionBox.style.width = `${selRect.w}px`;
+  selectionBox.style.height = `${selRect.h}px`;
+}
+
+drawCanvas.addEventListener('pointerdown', (e) => {
+  if (tool !== 'select') return;
+  const pos = getCanvasCoords(e);
+
+  // 1. Check if clicking inside an existing selection to drag it
+  if (
+    selState === 'selected' &&
+    pos.x >= selRect.x && pos.x <= selRect.x + selRect.w &&
+    pos.y >= selRect.y && pos.y <= selRect.y + selRect.h
+  ) {
+    selState = 'moving';
+    dragStart = { x: pos.x - selRect.x, y: pos.y - selRect.y };
+    return;
+  }
+
+  // 2. Otherwise commit any previous selection and start a new marquee box
+  commitSelection();
+  selState = 'selecting';
+  dragStart = pos;
+  selRect = { x: pos.x, y: pos.y, w: 0, h: 0 };
+  updateBoxUI();
+  selectionBox.hidden = false;
+});
+
+window.addEventListener('pointermove', (e) => {
+  if (tool !== 'select') return;
+  const pos = getCanvasCoords(e);
+
+  if (selState === 'selecting') {
+    selRect.x = Math.min(dragStart.x, pos.x);
+    selRect.y = Math.min(dragStart.y, pos.y);
+    selRect.w = Math.abs(pos.x - dragStart.x);
+    selRect.h = Math.abs(pos.y - dragStart.y);
+    updateBoxUI();
+  } else if (selState === 'moving') {
+    selRect.x = pos.x - dragStart.x;
+    selRect.y = pos.y - dragStart.y;
+    updateBoxUI();
+
+    // Redraw background + floating selection at new position
+    ctx.putImageData(baseImageData, 0, 0);
+    ctx.drawImage(floatCanvas, selRect.x, selRect.y);
+  }
+});
+
+window.addEventListener('pointerup', () => {
+  if (tool !== 'select') return;
+
+  if (selState === 'selecting') {
+    // Ignore tiny accidental clicks
+    if (selRect.w < 3 || selRect.h < 3) {
+      commitSelection();
+      return;
+    }
+
+    // Lift selected pixels onto floatCanvas
+    floatCanvas.width = selRect.w;
+    floatCanvas.height = selRect.h;
+    const pickedPixels = ctx.getImageData(selRect.x, selRect.y, selRect.w, selRect.h);
+    floatCtx.putImageData(pickedPixels, 0, 0);
+
+    // Clear the original spot on drawCanvas and save the clean background
+    ctx.clearRect(selRect.x, selRect.y, selRect.w, selRect.h);
+    baseImageData = ctx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+
+    // Draw the lifted pixels right back in place so they remain visible
+    ctx.drawImage(floatCanvas, selRect.x, selRect.y);
+
+    selState = 'selected';
+    selectionBox.classList.add('ready-to-move');
+  } else if (selState === 'moving') {
+    selState = 'selected';
+  }
+});
+
+function commitSelection() {
+  if (selState === "selected" || selState === "moving") {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.putImageData(baseImageData, 0, 0);
+    ctx.drawImage(floatCanvas, selRect.x, selRect.y);
+    saveCurrentFrame();
+    updateSingleThumbnail(currentFrame);
+  }
+  selState = "idle";
+  selectionBox.hidden = true;
+  selectionBox.classList.remove("ready-to-move");
+  baseImageData = null;
+}
