@@ -1,4 +1,4 @@
-cconst drawCanvas = document.getElementById("drawCanvas");
+const drawCanvas = document.getElementById("drawCanvas");
 const drawCtx = drawCanvas.getContext("2d", { willReadFrequently: true });
 const onionCanvas = document.getElementById("onionCanvas");
 const onionCtx = onionCanvas.getContext("2d");
