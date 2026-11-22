@@ -71,6 +71,7 @@ input[type="number"] {
 /* Drawing Stage */
 .stage {
   position: relative; width: 720px; height: 420px; max-width: 95vw;
+  user-select: none;  /* Prevent text selection while drawing */
   background: #ffffff; border-radius: 8px; overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
 }
@@ -156,4 +157,19 @@ input[type="number"] {
 
 #brushCursor[hidden] {
   display: none;
+}
+
+
+#selectionBox {
+  position: absolute;
+  border: 1.5px dashed #3b82f6;
+  background-color: rgba(59, 130, 246, 0.15);
+  box-sizing: border-box;
+  pointer-events: none; /* Lets mouse events pass through to drawCanvas */
+  z-index: 20;
+}
+/* Optional: show a move cursor when hovering an active selection */
+#selectionBox.ready-to-move {
+  border-style: solid;
+  cursor: move;
 }
