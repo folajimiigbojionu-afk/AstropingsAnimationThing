@@ -466,16 +466,19 @@ document.getElementById('eraserBtn').addEventListener('click', () => { commitSel
 function getCanvasCoords(e) {
   const rect = drawCanvas.getBoundingClientRect();
   return {
-    x: Math.round(e.clientX - rect.left),
-    y: Math.round(e.clientY - rect.top)
+    x: Math.round((e.clientX - rect.left) * (drawCanvas.width / rect.width)),
+    y: Math.round((e.clientY - rect.top) * (drawCanvas.height / rect.height))
   };
 }
 
 function updateBoxUI() {
-  selectionBox.style.left = `${selRect.x}px`;
-  selectionBox.style.top = `${selRect.y}px`;
-  selectionBox.style.width = `${selRect.w}px`;
-  selectionBox.style.height = `${selRect.h}px`;
+  const rect = drawCanvas.getBoundingClientRect();
+  const scaleX = rect.width / drawCanvas.width;
+  const scaleY = rect.height / drawCanvas.height;
+  selectionBox.style.left = `${selRect.x * scaleX}px`;
+  selectionBox.style.top = `${selRect.y * scaleY}px`;
+  selectionBox.style.width = `${selRect.w * scaleX}px`;
+  selectionBox.style.height = `${selRect.h * scaleY}px`;
 }
 
 drawCanvas.addEventListener('pointerdown', (e) => {
