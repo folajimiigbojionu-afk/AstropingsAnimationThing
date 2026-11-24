@@ -58,8 +58,9 @@ button {
 }
 
 button:hover {
-  background: var(--button-color-dark);
+  background: color-mix(in srgb, var(--button-color), #000 12%);
 }
+
 button.active {
   background: #2563eb;
 }
@@ -70,6 +71,17 @@ input[type="color"] {
 
 input[type="range"]::-webkit-slider-runnable-track {
   background-color: color-mix(in srgb, var(--toolbar-color), white 20%);
+  height: 6px;
+  border-radius: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--button-color);
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -5px; /* Center the thumb on the track */
 }
 
 input[type="number"] {
