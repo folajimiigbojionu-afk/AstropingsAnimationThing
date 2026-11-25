@@ -193,3 +193,74 @@ input[type="number"] {
   border-style: solid;
   cursor: move;
 }
+
+#audioVisualizer {
+  background-color: color-mix(in srgb, var(--bg-color), white 20%);
+  border: 1px solid color-mix(in srgb, var(--text-color), transparent 70%);
+  border-radius: 6px;
+  vertical-align: middle;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.toolbar,
+.controls,
+.timeline-wrapper,
+.settings {
+  background-color: color-mix(in srgb, var(--bg-color), white 20%);
+  color: var(--text-color);
+}
+
+.settings {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--toolbar-color);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mode-toggle-group {
+  display: flex;
+  gap: 6px;
+}
+
+.mode-btn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #333;
+  cursor: pointer;
+}
+
+/* Highlighted "ON" state */
+.mode-btn.active {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+}
+
+.settings-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+  margin-left: 8px;
+}
