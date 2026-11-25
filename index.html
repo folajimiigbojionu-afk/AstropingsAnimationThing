@@ -16,6 +16,27 @@
     <button id="ctxDelBtn">Delete Frame</button>
   </div>
 
+  <button id="settingsBtn" class="settings-btn" title="Settings">
+    <i class="fa-solid fa-gear"></i>
+  </button>
+
+  <div id="settings-header" class="settings" hidden>
+    <span>Mode</span>
+    <div class="mode-toggle-group">
+      <button type="button" id="mode1Btn" class="mode-btn active">
+        Mode 1(Dark/Light Swithch)
+      </button>
+      <button type="button" id="mode2Btn" class="mode-btn">
+        Mode 2 (BG color and text color)
+      </button>
+      <input type="color" id="bgColorPicker" value="#000000" title="Background Color" hidden>
+      <label for="bgColorPicker" hidden>Background Color</label>
+      <input type="color" id="textColorPicker" value="#ffffff" title="Text Color" hidden>
+      <label for="textColorPicker" hidden>Text Color</label>
+      <button class="close" id="closeSettingsBtn">&times;</button>
+    </div>
+  </div>
+
   <!-- Top Drawing Tools -->
   <div class="toolbar">
     <button id="penBtn" class="active">
@@ -64,11 +85,15 @@
     <button id="delFrameBtn">Delete</button>
     <label>FPS <input type="number" id="fpsInput" min="1" max="60" value="12" /></label>
     <button id="playBtn">Play</button>
+    <button id="audioUploadBtn"><i class="fa-solid fa-file-audio"></i> Upload Audio</button>
+    <input type="file" id="audioInput" accept="audio/*" hidden />
+    <span id="audioFileName">No audio</span>
   </div>
 
   <!-- Visible Horizontal Frame Timeline -->
   <div class="timeline-wrapper">
     <div id="timelineStrip" class="timeline-strip"></div>
+    <canvas id="audioVisualizer" width="160" height="36"></canvas>
   </div>
 
 <script src="main.js"></script>
