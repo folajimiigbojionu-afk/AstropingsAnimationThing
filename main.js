@@ -569,3 +569,261 @@ function commitSelection() {
   selectionBox.classList.remove("ready-to-move");
   baseImageData = null;
 }
+
+const audioUploadBtn = document.getElementById('audioUploadBtn');
+const audioInput = document.getElementById('audioInput');
+const audioFileName = document.getElementById('audioFileName');
+
+let bgAudio = null; // Stores your loaded Audio object
+
+// 1. Trigger the hidden file input
+audioUploadBtn.addEventListener('click', () => audioInput.click());
+
+// 2. Load the chosen audio file
+audioInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  bgAudio = new Audio(url);
+  audioFileName.textContent = file.name;
+});
+
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsDiv = document.getElementById('settings-header');
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+
+const mode1Btn = document.getElementById('mode1Btn');
+const mode2Btn = document.getElementById('mode2Btn');
+const bgColorPicker = document.getElementById('bgColorPicker');
+const textColorPicker = document.getElementById('textColorPicker');
+const themeBtn = document.getElementById('themeBtn');
+
+let currentMode = 'mode1';
+let isDark = false;
+
+function applyColors(bg, text) {
+  document.documentElement.style.setProperty('--bg-color', bg);
+  document.documentElement.style.setProperty('--text-color', text);
+  document.body.style.backgroundColor = bg;
+  document.body.style.color = text;
+}
+
+// Show / Hide settings div
+settingsBtn.addEventListener('click', () => {
+  settingsDiv.hidden = !settingsDiv.hidden;
+});
+
+closeSettingsBtn.addEventListener('click', () => {
+  settingsDiv.hidden = true;
+});
+
+// Switch between Mode 1 and Mode 2
+function setMode(selected) {
+  currentMode = selected;
+
+  mode1Btn.classList.toggle('active', selected === 'mode1');
+  mode2Btn.classList.toggle('active', selected === 'mode2');
+
+  if (selected === 'mode1') {
+    // Show moon button, hide custom pickers
+    themeBtn.hidden = false;
+    bgColorPicker.hidden = true;
+    textColorPicker.hidden = true;
+    applyColors(isDark ? '#18181b' : '#ffffff', isDark ? '#f4f4f5' : '#111111');
+  } else {
+    // Hide moon button, show custom pickers
+    themeBtn.hidden = true;
+    bgColorPicker.hidden = false;
+    textColorPicker.hidden = false;
+    applyColors(bgColorPicker.value, textColorPicker.value);
+  }
+}
+
+mode1Btn.addEventListener('click', () => setMode('mode1'));
+mode2Btn.addEventListener('click', () => setMode('mode2'));
+
+// Make sure you ONLY have this one click listener for themeBtn!
+themeBtn.addEventListener('click', () => {
+  isDark = !isDark;
+  setMode('mode1');
+});
+
+// Live updates for Mode 2 color pickers
+bgColorPicker.addEventListener('input', () => {
+  if (currentMode === 'mode2') {
+    applyColors(bgColorPicker.value, textColorPicker.value);
+  }
+});
+
+textColorPicker.addEventListener('input', () => {
+  if (currentMode === 'mode2') {
+    applyColors(bgColorPicker.value, textColorPicker.value);
+  }
+});
+
+const vizCanvas = document.getElementById('audioVisualizer');
+const vizCtx = vizCanvas.getContext('2d');
+
+let audioCtx = null;
+let analyser = null;
+let audioSource = null;
+let vizDataArray = null;
+
+// Call this once when an audio file is loaded or played
+function setupAudioVisualizer(audioElement) {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64; // Gives 32 frequency bars (clean for a small canvas)
+
+    audioSource = audioCtx.createMediaElementSource(audioElement);
+    audioSource.connect(analyser);
+    analyser.connect(audioCtx.destination); // Sends sound to your speakers
+
+    vizDataArray = new Uint8Array(analyser.frequencyBinCount);
+  }
+
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+// Animation loop for the visualizer bars
+function drawVisualizer() {
+  requestAnimationFrame(drawVisualizer);
+
+  vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
+
+  if (!analyser || !bgAudio || bgAudio.paused) return;
+
+  analyser.getByteFrequencyData(vizDataArray);
+
+  // Match the bar color to your active --text-color variable
+  const barColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--text-color')
+    .trim() || '#3b82f6';
+
+  vizCtx.fillStyle = barColor;
+
+  const barCount = vizDataArray.length;
+  const barWidth = (vizCanvas.width / barCount) - 2;
+
+  for (let i = 0; i < barCount; i++) {
+    const percent = vizDataArray[i] / 255;
+    const barHeight = Math.max(2, percent * vizCanvas.height);
+    const x = i * (barWidth + 2);
+    const y = vizCanvas.height - barHeight;
+
+    vizCtx.fillRect(x, y, barWidth, barHeight);
+  }
+}
+
+drawVisualizer(); // Start the visualizer loop immediately
+
+bgAudio = bgAudio || new Audio();
+
+audioInput.addEventListener('change', (e) => {
+  const file = e.target.files;
+  if (!file) return;
+
+  bgAudio.src = URL.createObjectURL(file);
+  audioFileName.textContent = file.name;
+  setupAudioVisualizer(bgAudio);
+});
+
+const waveCanvas = document.getElementById('waveformCanvas');
+const waveCtx = waveCanvas.getContext('2d');
+bgAudio = bgAudio || new Audio();
+
+let wavePeaks = []; // Stores normalized peak heights (0 to 1)
+
+// 1. Decode audio file into peaks when uploaded
+audioInput.addEventListener('change', async (e) => {
+  const file = e.target.files;
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  bgAudio.src = url;
+  audioFileName.textContent = file.name;
+
+  // Read raw audio bytes and decode waveform
+  const arrayBuffer = await file.arrayBuffer();
+  const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const audioBuffer = await tempCtx.decodeAudioData(arrayBuffer);
+
+  extractPeaks(audioBuffer);
+  drawWaveform(0);
+});
+
+// 2. Sample the audio buffer into clean bars across the canvas width
+function extractPeaks(audioBuffer) {
+  // Match internal canvas resolution to its displayed CSS width
+  waveCanvas.width = waveCanvas.clientWidth || 800;
+
+  const channelData = audioBuffer.getChannelData(0); // First audio channel
+  const totalBars = Math.floor(waveCanvas.width / 3); // 2px bar + 1px gap
+  const samplesPerBar = Math.floor(channelData.length / totalBars);
+
+  wavePeaks = [];
+  for (let i = 0; i < totalBars; i++) {
+    let max = 0;
+    const start = i * samplesPerBar;
+    for (let j = 0; j < samplesPerBar; j++) {
+      const val = Math.abs(channelData[start + j] || 0);
+      if (val > max) max = val;
+    }
+    wavePeaks.push(max);
+  }
+}
+
+// 3. Render the full-width waveform + moving playhead line
+function drawWaveform(progress = 0) {
+  const width = waveCanvas.width;
+  const height = waveCanvas.height;
+  waveCtx.clearRect(0, 0, width, height);
+
+  if (wavePeaks.length === 0) return;
+
+  const textColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--text-color')
+    .trim() || '#3b82f6';
+
+  const centerY = height / 2;
+
+  wavePeaks.forEach((peak, i) => {
+    const x = i * 3;
+    const barProgress = i / wavePeaks.length;
+    const barHeight = Math.max(2, peak * (height - 8));
+
+    // Highlight played section vs unplayed section
+    waveCtx.globalAlpha = barProgress <= progress ? 1.0 : 0.35;
+    waveCtx.fillStyle = textColor;
+
+    // Draw mirrored top-and-bottom waveform bar
+    waveCtx.fillRect(x, centerY - barHeight / 2, 2, barHeight);
+  });
+
+  // Draw vertical playhead line
+  waveCtx.globalAlpha = 1.0;
+  waveCtx.fillStyle = '#ef4444';
+  waveCtx.fillRect(progress * width, 0, 2, height);
+}
+
+// 4. Keep the playhead moving smoothly while audio plays
+function updateWaveformPlayhead() {
+  if (bgAudio.duration && !bgAudio.paused) {
+    drawWaveform(bgAudio.currentTime / bgAudio.duration);
+  }
+  requestAnimationFrame(updateWaveformPlayhead);
+}
+updateWaveformPlayhead();
+
+// 5. Bonus: Click anywhere on the waveform to scrub/jump to that spot!
+waveCanvas.addEventListener('click', (e) => {
+  if (!bgAudio.duration) return;
+  const rect = waveCanvas.getBoundingClientRect();
+  const clickProgress = (e.clientX - rect.left) / rect.width;
+  bgAudio.currentTime = clickProgress * bgAudio.duration;
+  drawWaveform(clickProgress);
+});
