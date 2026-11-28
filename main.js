@@ -69,8 +69,6 @@ drawCanvas.addEventListener("pointerdown", (e) => {
 
   const pt = getCoords(e);
   points = [pt, pt]; // Duplicate start point so dots/short taps still render
-
-  // Configure brush once per stroke
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.lineWidth = document.getElementById("brushSize").value;
@@ -88,12 +86,13 @@ drawCanvas.addEventListener("pointerdown", (e) => {
 drawCanvas.addEventListener("pointermove", (e) => {
   if (!isDrawing) return;
   if (tool === "select") return;
-
+      ctx.lineWidth = document.getElementById("brushSize").value;
   // Use coalesced events if available for higher-precision stylus/mouse tracking
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
   for (const ev of events) {
     const raw = getCoords(ev);
     const prev = points[points.length - 1];
+      
 
     // Light input stabilization (0.55 = balanced smoothing, lower = stronger pull)
     const smoothFactor = 0.55;
