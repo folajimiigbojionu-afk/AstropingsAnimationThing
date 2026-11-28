@@ -41,6 +41,24 @@ let points = [];
 ctx.lineCap = "round";
 ctx.lineJoin = "round";
 
+const brushSizeInput = document.getElementById("brushSize");
+const brushCursor = document.getElementById("brushCursor");
+
+function updateBrushCursorSize() {
+  const scale = drawCanvas.getBoundingClientRect().width / drawCanvas.width;
+  const size = Number(brushSizeInput.value) * scale;
+  brushCursor.style.width = `${size}px`;
+  brushCursor.style.height = `${size}px`;
+}
+
+brushSizeInput.addEventListener("input", updateBrushCursorSize);
+window.addEventListener("resize", updateBrushCursorSize);
+drawCanvas.addEventListener("pointerenter", () => {
+  if (tool !== "select") brushCursor.hidden = false;
+  updateBrushCursorSize();
+});
+drawCanvas.addEventListener("pointerleave", () => { brushCursor.hidden = true; });
+
 // --- 1. Drawing Logic (Mouse, Touch & Stylus) ---
 drawCanvas.addEventListener("pointerdown", (e) => {
   if (playTimer) return;
